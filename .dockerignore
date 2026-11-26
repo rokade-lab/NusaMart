@@ -1,0 +1,10 @@
+.git
+.env
+data
+**/__pycache__
+vendor
+node_modules
+output
+*.log
+*.pem
+*.key

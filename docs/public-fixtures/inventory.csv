@@ -1,0 +1,3 @@
+workload_id,owner,exposure,criticality,blackout,image_id,component,runtime_version,prerequisite,observed_at,source_ref,source_revision,scenario_version
+checkout,team-nusamart,published-http,high,unassigned,fixture:image-a,php,8.5.11,true,2026-11-07T10:00:00Z,fixture:runtime/checkout,fixture-only,NM-SIM-1
+proxy,team-nusamart,published-http,high,unassigned,fixture:image-p,nginx-proxy-manager,2.9.14,true,2026-11-07T10:00:00Z,fixture:runtime/proxy,fixture-only,NM-SIM-1

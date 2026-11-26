@@ -1,0 +1,13 @@
+.env
+data/
+vendor/
+node_modules/
+__pycache__/
+*.log
+*.pem
+*.key
+*.sql.gz
+.DS_Store
+output/
+test-results/
+playwright-report/

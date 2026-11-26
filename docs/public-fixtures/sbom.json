@@ -1,0 +1,27 @@
+{
+  "format": "nusamart-runtime-sbom-1",
+  "scenario_version": "NM-SIM-1",
+  "label": "SYNTHETIC PUBLIC EXAMPLE; not runtime evidence",
+  "components": [
+    {
+      "workload_id": "checkout",
+      "image_id": "fixture:image-a",
+      "component": "php",
+      "prerequisite": "true",
+      "observed_at": "2026-11-07T10:00:00Z",
+      "source_ref": "fixture:sbom/checkout",
+      "scenario_version": "NM-SIM-1",
+      "version": "8.5.11"
+    },
+    {
+      "workload_id": "proxy",
+      "image_id": "fixture:image-p",
+      "component": "nginx-proxy-manager",
+      "prerequisite": "true",
+      "observed_at": "2026-11-07T10:00:00Z",
+      "source_ref": "fixture:sbom/proxy",
+      "scenario_version": "NM-SIM-1",
+      "version": "2.9.14"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "advisory_id": "NM-SIM-NPM-001",
+  "scenario_version": "NM-SIM-1",
+  "simulation": true,
+  "label": "SIMULASI LATIHAN — range mengikuti CVE-2026-40519 (Nginx Proxy Manager authenticated RCE via setupCertbotPlugins). Jangan mengeksploitasi; latihan hanya identifikasi, triase dan patch.",
+  "component": "nginx-proxy-manager",
+  "prerequisite": "npm_enabled",
+  "prerequisite_definition": "Aplikasi Nginx Proxy Manager terpasang di workload dan versinya diamati operator dari /app/package.json; bukan asumsi akses login atau izin certificates:manage.",
+  "reference_cve": "CVE-2026-40519",
+  "reference_cwe": "CWE-78",
+  "references": [
+    "https://nvd.nist.gov/vuln/detail/CVE-2026-40519",
+    "https://osv.dev/vulnerability/CVE-2026-40519",
+    "https://github.com/NginxProxyManager/nginx-proxy-manager/pull/5498",
+    "https://github.com/NginxProxyManager/nginx-proxy-manager/commit/a5db5ed156355e3088e7d1ceb0533d4bae922def"
+  ],
+  "matrix": [
+    {"affected_from": "2.9.14", "fixed": "2.16.0"}
+  ],
+  "range_semantics": "affected_from inclusive; fixed exclusive affected/inclusive patched. Row without series covers all minor series between the bounds (sumber: introduced 2.9.14, last_affected 2.15.1, rilis pertama sesudahnya 2.16.0). Versi sebelum 2.9.14 not_affected untuk advisory ini. Rules only belong to this simulation.",
+  "prerequisites": ["Reconcile runtime image identity, observed timestamp and source with runtime SBOM before status", "No exploitation, no login with default credentials, no vulnerability scanning"],
+  "mitigation_policy": "Underlying affected; verified=true, control evidence, owner, matching workload/advisory/image, verified_at <= as_of < expires_at.",
+  "triage": {"owner": "team-nusamart", "exposure": "proxy workload publishes storefront 8080 and admin UI/API 81 (lab port 19184)", "blackout": "not yet assigned; confirm the actual peak window before drafting a patch plan", "criticality": "proxy high when admin UI is reachable"}
+}

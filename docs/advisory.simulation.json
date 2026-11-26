@@ -1,0 +1,27 @@
+{
+  "advisory_id": "NM-SIM-PHP-001",
+  "scenario_version": "NM-SIM-1",
+  "simulation": true,
+  "label": "SIMULASI LATIHAN — bukan CVE nyata atau klaim kerentanan PHP aktual",
+  "component": "php",
+  "prerequisite": "php_enabled",
+  "prerequisite_definition": "Executable PHP tersedia di workload dan versinya diamati operator; bukan asumsi exposure HTTP atau konfigurasi CVE nyata.",
+  "matrix": [
+    {"series": "8.2", "affected_from": "8.2.0", "fixed": "8.2.35"},
+    {"series": "8.3", "affected_from": "8.3.0", "fixed": "8.3.36"},
+    {"series": "8.4", "affected_from": "8.4.0", "fixed": "8.4.27"},
+    {"series": "8.5", "affected_from": "8.5.0", "fixed": "8.5.12"}
+  ],
+  "range_semantics": "affected_from inclusive; fixed exclusive affected/inclusive patched. Boundaries mirror a public PHP advisory configuration for realism, but this record stays a training simulation. Series 7.3-8.1 (EOL, no fixed release) and any other series are unknown. Rules only belong to this simulation.",
+  "prerequisites": [
+    "Reconcile runtime image identity, observed timestamp and source with runtime SBOM before status",
+    "No exploitation or vulnerability scanning"
+  ],
+  "mitigation_policy": "Underlying affected; verified=true, control evidence, owner, matching workload/advisory/image, verified_at <= as_of < expires_at. Third-party attestation is input evidence, not classifier verification of controls.",
+  "triage": {
+    "owner": "team-nusamart",
+    "exposure": "four published HTTP endpoints; two internal workers",
+    "blackout": "not yet assigned; confirm the actual peak window before drafting a patch plan",
+    "criticality": "checkout/queue high; others medium"
+  }
+}

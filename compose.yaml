@@ -1,0 +1,230 @@
+x-php-env: &php-env
+  DB_HOST: postgres
+  DB_NAME: nusamart
+  DB_USER: nusamart
+  DB_PASSWORD_FILE: /run/nusamart-secrets/db_password
+  DB_PASSWORD_SOURCE_FILE: /run/secrets/db_password
+  CHECKOUT_TOKEN_FILE: /run/nusamart-secrets/checkout_token
+  CATALOG_URL: http://catalog-api:8000
+  CHECKOUT_URL: http://checkout:8000
+  SOURCE_ID: ${SOURCE_ID:-working-tree}
+
+x-labels: &labels
+  io.nusamart.source: ${SOURCE_ID:-working-tree}
+  io.nusamart.config: ${CONFIG_ID:-unmeasured}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 1m
+    max-file: '2'
+
+x-php: &php
+  image: nusamart-peserta-php:local
+  build:
+    context: .
+    dockerfile: docker/php.Dockerfile
+    args:
+      SOURCE_ID: ${SOURCE_ID:-working-tree}
+  init: true
+  restart: unless-stopped
+  mem_limit: 128m
+  cpus: 0.25
+  read_only: true
+  tmpfs:
+  - /tmp
+  - /run/nusamart-secrets:rw,noexec,nosuid,size=1m
+  cap_drop:
+  - ALL
+  cap_add:
+  - CHOWN
+  - DAC_OVERRIDE
+  - SETUID
+  - SETGID
+  - KILL
+  security_opt:
+  - no-new-privileges:true
+  secrets:
+  - db_password
+  networks:
+  - backend
+  labels: *labels
+  logging: *logging
+  healthcheck:
+    test:
+    - CMD
+    - su-exec
+    - nusamart
+    - php
+    - bin/health.php
+    interval: 5s
+    timeout: 3s
+    retries: 6
+  depends_on:
+    init:
+      condition: service_completed_successfully
+
+services:
+  postgres:
+    image: postgres:18-alpine@sha256:123b17998ccaf47e53b502e8c6a1e79afd8f579c6f3eec83c563da026f957395
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nusamart
+      POSTGRES_DB: nusamart
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+    - db_password
+    volumes:
+    - ./data/postgres:/var/lib/postgresql
+    networks:
+    - backend
+    mem_limit: 512m
+    cpus: 0.5
+    labels: *labels
+    logging: *logging
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -h 127.0.0.1 -U nusamart -d nusamart
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  init:
+    <<: *php
+    restart: 'no'
+    environment:
+      <<: *php-env
+      WORKLOAD_ID: init
+      BUYER_PASSWORD_SOURCE_FILE: /run/secrets/buyer_password
+    secrets:
+    - db_password
+    - buyer_password
+    command:
+    - sh
+    - -c
+    - php bin/database.php migrate && php bin/database.php seed
+    healthcheck:
+      disable: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  storefront:
+    <<: *php
+    environment:
+      <<: *php-env
+      WORKLOAD_ID: storefront
+      PHP_CLI_SERVER_WORKERS: '2'
+      CHECKOUT_TOKEN_SOURCE_FILE: /run/secrets/checkout_token
+    secrets:
+    - db_password
+    - checkout_token
+    networks:
+    - backend
+    - edge
+    ports:
+    - 127.0.0.1:${STOREFRONT_PORT:-19181}:8000
+
+  catalog-api:
+    <<: *php
+    environment:
+      <<: *php-env
+      WORKLOAD_ID: catalog-api
+    networks:
+    - backend
+    - edge
+    ports:
+    - 127.0.0.1:${CATALOG_PORT:-19182}:8000
+
+  checkout:
+    <<: *php
+    environment:
+      <<: *php-env
+      WORKLOAD_ID: checkout
+      CHECKOUT_TOKEN_SOURCE_FILE: /run/secrets/checkout_token
+    secrets:
+    - db_password
+    - checkout_token
+    networks:
+    - backend
+    - edge
+    ports:
+    - 127.0.0.1:${CHECKOUT_PORT:-19183}:8000
+
+  queue-worker:
+    <<: *php
+    environment:
+      <<: *php-env
+      WORKLOAD_ID: queue-worker
+    command:
+    - php
+    - bin/queue-worker.php
+
+  reporting-worker:
+    <<: *php
+    environment:
+      <<: *php-env
+      WORKLOAD_ID: reporting-worker
+    command:
+    - php
+    - bin/reporting-worker.php
+
+  proxy:
+    image: nusamart-peserta-proxy:local
+    build:
+      context: .
+      dockerfile: docker/proxy.Dockerfile
+      args:
+        SOURCE_ID: ${SOURCE_ID:-working-tree}
+    init: false
+    restart: unless-stopped
+    ports:
+    - 127.0.0.1:${PROXY_PORT:-19180}:8080
+    - 127.0.0.1:${ADMIN_PORT:-19184}:81
+    volumes:
+    - ./data/proxy:/data
+    - ./data/letsencrypt:/etc/letsencrypt
+    depends_on:
+      storefront:
+        condition: service_started
+    networks:
+    - backend
+    - edge
+    mem_limit: 256m
+    cpus: 0.5
+    cap_drop:
+    - ALL
+    cap_add:
+    - CHOWN
+    - DAC_OVERRIDE
+    - FOWNER
+    - SETUID
+    - SETGID
+    - KILL
+    - NET_BIND_SERVICE
+    security_opt:
+    - no-new-privileges:true
+    labels: *labels
+    logging: *logging
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - curl -fsS -o /dev/null http://127.0.0.1:8080/health && curl -fsS -o /dev/null http://127.0.0.1:81/api/
+      interval: 5s
+      timeout: 3s
+      retries: 6
+      start_period: 120s
+
+secrets:
+  db_password:
+    file: ./docker/lab-secrets/db_password
+  checkout_token:
+    file: ./docker/lab-secrets/checkout_token
+  buyer_password:
+    file: ./docker/lab-secrets/buyer_password
+
+networks:
+  backend:
+    internal: true
+  edge: {}

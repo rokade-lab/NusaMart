@@ -1,0 +1,7 @@
+workload_id,status,priority,exposure,criticality,owner,blackout,confidence,image_id,runtime_version,observed_at,source_refs,uncertainty,mitigation_owner,mitigation_evidence,mitigation_expiry,underlying_assessment
+proxy,,,,,,,,,,,,,,,,,
+storefront,,,,,,,,,,,,,,,,,
+catalog-api,,,,,,,,,,,,,,,,,
+checkout,,,,,,,,,,,,,,,,,
+queue-worker,,,,,,,,,,,,,,,,,
+reporting-worker,,,,,,,,,,,,,,,,,

@@ -1,0 +1,15 @@
+{
+  "label": "SYNTHETIC unverified example; does not qualify",
+  "mitigations": [
+    {
+      "workload_id": "checkout",
+      "advisory_id": "NM-SIM-PHP-001",
+      "image_id": "fixture:image-a",
+      "owner": "",
+      "verified": false,
+      "verified_at": "2026-11-07T10:30:00Z",
+      "expires_at": "2026-11-07T12:00:00Z",
+      "evidence_ref": ""
+    }
+  ]
+}
